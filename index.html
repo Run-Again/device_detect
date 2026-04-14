@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>단말 OS 분기 감지 페이지</title>
+  <title>단말 구분</title>
   <style>
     :root {
       --bg: #f6f7fb;
@@ -220,11 +220,8 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>단말 OS / 폼팩터 감지 페이지</h1>
-    <p class="lead">
-      브라우저에서 얻을 수 있는 정보만으로 Windows / macOS / Android / iPhone / iPad / 기타를 최대한 안정적으로 분기합니다.
-      완전한 기기 식별이 아니라, 웹 포털의 1차 분기용 판단 로직입니다.
-    </p>
+    <h1>단말 구분</h1>
+
 
     <div class="grid">
       <section class="card">
@@ -236,6 +233,7 @@
         <div class="os-box">
           <div class="os-label">최종 분류</div>
           <div id="finalOs" class="os-value">-</div>
+          <div id="finalFormFactor" style="margin-top: 8px; font-size: 18px; font-weight: 700; color: var(--muted);">-</div>
         </div>
 
         <div id="routeHint" class="hint">
@@ -334,13 +332,13 @@
       const likelyMobileInput = s.pointerCoarse || s.hoverNone || s.maxTouchPoints > 0;
 
       if (typeof s.uaChMobile === "boolean") {
-        formFactor = s.uaChMobile ? "mobile" : "desktop-like";
+        formFactor = s.uaChMobile ? "모바일" : "PC";
         reasons.push(`UA-CH mobile=${s.uaChMobile}`);
       } else if (likelyMobileInput) {
-        formFactor = "mobile-like";
+        formFactor = "모바일";
         reasons.push("터치/포인터 특성 기반 mobile-like 판정");
       } else {
-        formFactor = "desktop-like";
+        formFactor = "PC";
         reasons.push("포인터 특성상 desktop-like 판정");
       }
 
@@ -416,6 +414,7 @@
       const s = result.signals;
 
       setText("finalOs", result.detected_os);
+      setText("finalFormFactor", `구분: ${result.form_factor}`);
       setText("routeHint", result.route_hint);
       setText("uaChSupport", s.hasUAData ? "지원" : "미지원");
       setText("uaChPlatform", s.uaChPlatform || "- (없음)");
@@ -429,7 +428,7 @@
       setText("jsonOutput", JSON.stringify(result, null, 2));
 
       const platformBadge = document.getElementById("platformBadge");
-      platformBadge.textContent = `분기 결과: ${result.detected_os}`;
+      platformBadge.textContent = `탐지 결과: ${result.detected_os} / ${result.form_factor}`;
 
       const confidenceBadge = document.getElementById("confidenceBadge");
       confidenceBadge.className = `confidence ${result.confidence}`;
