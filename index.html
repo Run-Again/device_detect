@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>단말 OS 분기 감지 페이지</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --ok: #166534;
+      --warn: #92400e;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 32px;
+      line-height: 1.2;
+    }
+
+    .lead {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .result {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #eff6ff;
+      color: var(--accent);
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .confidence {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .confidence.high {
+      background: #ecfdf5;
+      color: var(--ok);
+      border: 1px solid #bbf7d0;
+    }
+
+    .confidence.medium {
+      background: #fff7ed;
+      color: var(--warn);
+      border: 1px solid #fed7aa;
+    }
+
+    .confidence.low {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+
+    .os-box {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #fafafa;
+      margin-bottom: 16px;
+    }
+
+    .os-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .os-value {
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .hint {
+      margin-top: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      color: #374151;
+      line-height: 1.55;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      width: 34%;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      background: var(--accent);
+      color: white;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #111827;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 16px;
+      border-radius: 16px;
+      font-size: 13px;
+      line-height: 1.55;
+      overflow: auto;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 840px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+
+      .os-value {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>단말 OS / 폼팩터 감지 페이지</h1>
+    <p class="lead">
+      브라우저에서 얻을 수 있는 정보만으로 Windows / macOS / Android / iPhone / iPad / 기타를 최대한 안정적으로 분기합니다.
+      완전한 기기 식별이 아니라, 웹 포털의 1차 분기용 판단 로직입니다.
+    </p>
+
+    <div class="grid">
+      <section class="card">
+        <div class="result">
+          <span id="platformBadge" class="badge">판별 중...</span>
+          <span id="confidenceBadge" class="confidence low">신뢰도: 확인 중</span>
+        </div>
+
+        <div class="os-box">
+          <div class="os-label">최종 분류</div>
+          <div id="finalOs" class="os-value">-</div>
+        </div>
+
+        <div id="routeHint" class="hint">
+          분기 안내가 여기에 표시됩니다.
+        </div>
+
+        <div class="actions">
+          <button id="redetectBtn" type="button">다시 감지</button>
+          <button id="copyBtn" type="button" class="secondary">결과 복사</button>
+        </div>
+
+        <p class="small">
+          권장 사용 방식: 이 페이지의 결과는 등록 플로우 분기용으로만 사용하고,
+          실제 등록 완료 후에는 인증서, MDM, 에이전트 상태 같은 서버 측 등록 정보로 최종 식별하세요.
+        </p>
+      </section>
+
+      <section class="card">
+        <table>
+          <tbody>
+            <tr><th>UA-CH 지원</th><td id="uaChSupport">-</td></tr>
+            <tr><th>UA-CH platform</th><td id="uaChPlatform">-</td></tr>
+            <tr><th>UA-CH mobile</th><td id="uaChMobile">-</td></tr>
+            <tr><th>userAgent</th><td id="uaString">-</td></tr>
+            <tr><th>maxTouchPoints</th><td id="touchPoints">-</td></tr>
+            <tr><th>(pointer: coarse)</th><td id="pointerCoarse">-</td></tr>
+            <tr><th>(hover: none)</th><td id="hoverNone">-</td></tr>
+            <tr><th>screen</th><td id="screenInfo">-</td></tr>
+            <tr><th>내부 사유</th><td id="reasonList">-</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top: 20px;">
+      <h2 style="margin-top: 0; font-size: 20px;">JSON 결과</h2>
+      <pre id="jsonOutput">{}</pre>
+    </section>
+  </div>
+
+  <script>
+    function safeMatchMedia(query) {
+      try {
+        return window.matchMedia(query).matches;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function getBaseSignals() {
+      const ua = navigator.userAgent || "";
+      const hasUAData = !!navigator.userAgentData;
+      const uaData = navigator.userAgentData || null;
+      const uaChMobile = uaData && typeof uaData.mobile === "boolean" ? uaData.mobile : null;
+      const uaChPlatform = uaData && uaData.platform ? String(uaData.platform) : "";
+      const maxTouchPoints = Number(navigator.maxTouchPoints || 0);
+      const pointerCoarse = safeMatchMedia("(pointer: coarse)");
+      const hoverNone = safeMatchMedia("(hover: none)");
+      const screenInfo = `${window.screen.width} x ${window.screen.height} @ ${window.devicePixelRatio || 1}x`;
+
+      return {
+        ua,
+        hasUAData,
+        uaChMobile,
+        uaChPlatform,
+        maxTouchPoints,
+        pointerCoarse,
+        hoverNone,
+        screenInfo
+      };
+    }
+
+    function detectDevice() {
+      const s = getBaseSignals();
+      const reasons = [];
+      let os = "기타";
+      let confidence = "low";
+      let formFactor = "unknown";
+
+      const ua = s.ua;
+      const uaLower = ua.toLowerCase();
+      const platform = (s.uaChPlatform || "").toLowerCase();
+
+      const isIPhoneUA = /iPhone/i.test(ua);
+      const isIPadUA = /iPad/i.test(ua);
+      const isIPodUA = /iPod/i.test(ua);
+      const isAndroidUA = /Android/i.test(ua);
+      const isWindowsUA = /Windows NT|Windows/i.test(ua);
+      const isMacUA = /Macintosh|Mac OS X/i.test(ua);
+
+      const likelyIPadDesktopMode =
+        !isIPadUA &&
+        isMacUA &&
+        s.maxTouchPoints > 1;
+
+      const likelyMobileInput = s.pointerCoarse || s.hoverNone || s.maxTouchPoints > 0;
+
+      if (typeof s.uaChMobile === "boolean") {
+        formFactor = s.uaChMobile ? "mobile" : "desktop-like";
+        reasons.push(`UA-CH mobile=${s.uaChMobile}`);
+      } else if (likelyMobileInput) {
+        formFactor = "mobile-like";
+        reasons.push("터치/포인터 특성 기반 mobile-like 판정");
+      } else {
+        formFactor = "desktop-like";
+        reasons.push("포인터 특성상 desktop-like 판정");
+      }
+
+      if (platform === "android" || isAndroidUA) {
+        os = "Android";
+        confidence = s.hasUAData || isAndroidUA ? "high" : "medium";
+        reasons.push(platform === "android" ? "UA-CH platform=Android" : "UA에 Android 포함");
+      }
+      else if (isIPhoneUA) {
+        os = "iPhone";
+        confidence = "high";
+        reasons.push("UA에 iPhone 포함");
+      }
+      else if (isIPadUA) {
+        os = "iPad";
+        confidence = "high";
+        reasons.push("UA에 iPad 포함");
+      }
+      else if (likelyIPadDesktopMode) {
+        os = "iPad";
+        confidence = "medium";
+        reasons.push("Macintosh UA + 다중 터치 → iPadOS 데스크톱 모드 가능성");
+      }
+      else if (platform === "windows" || isWindowsUA) {
+        os = "Windows";
+        confidence = platform === "windows" ? "high" : "medium";
+        reasons.push(platform === "windows" ? "UA-CH platform=Windows" : "UA에 Windows 포함");
+      }
+      else if (platform === "macos" || isMacUA) {
+        os = "macOS";
+        confidence = platform === "macos" ? "high" : "medium";
+        reasons.push(platform === "macos" ? "UA-CH platform=macOS" : "UA에 Macintosh/Mac OS X 포함");
+      }
+      else {
+        os = "기타";
+        confidence = s.hasUAData ? "medium" : "low";
+        reasons.push("명확한 플랫폼 신호 부족");
+      }
+
+      if (os === "Windows" && s.maxTouchPoints > 0) {
+        reasons.push("터치 지원 Windows 장치 가능");
+      }
+
+      if (os === "macOS" && likelyMobileInput) {
+        reasons.push("입력 특성이 일반 macOS와 다를 수 있어 추가 검증 권장");
+      }
+
+      const routeMessageMap = {
+        "Windows": "Windows 등록 페이지로 분기: EXE/MSI 에이전트 설치 또는 인증서 등록 안내",
+        "macOS": "macOS 등록 페이지로 분기: 프로파일 설치 또는 macOS 에이전트 안내",
+        "Android": "Android 등록 페이지로 분기: 앱 설치, Work Profile, 인증서/프로파일 안내",
+        "iPhone": "iPhone 등록 페이지로 분기: 모바일 프로파일 또는 앱 기반 등록 안내",
+        "iPad": "iPad 등록 페이지로 분기: iPadOS용 모바일 프로파일 또는 앱 기반 등록 안내",
+        "기타": "공통 등록 페이지로 분기: 수동 선택 UI 제공 권장"
+      };
+
+      return {
+        detected_os: os,
+        form_factor: formFactor,
+        confidence,
+        route_hint: routeMessageMap[os],
+        signals: s,
+        reasons
+      };
+    }
+
+    function setText(id, value) {
+      document.getElementById(id).textContent = String(value);
+    }
+
+    function render() {
+      const result = detectDevice();
+      const s = result.signals;
+
+      setText("finalOs", result.detected_os);
+      setText("routeHint", result.route_hint);
+      setText("uaChSupport", s.hasUAData ? "지원" : "미지원");
+      setText("uaChPlatform", s.uaChPlatform || "- (없음)");
+      setText("uaChMobile", typeof s.uaChMobile === "boolean" ? s.uaChMobile : "- (없음)");
+      setText("uaString", s.ua || "");
+      setText("touchPoints", s.maxTouchPoints);
+      setText("pointerCoarse", s.pointerCoarse);
+      setText("hoverNone", s.hoverNone);
+      setText("screenInfo", s.screenInfo);
+      setText("reasonList", result.reasons.join(" / "));
+      setText("jsonOutput", JSON.stringify(result, null, 2));
+
+      const platformBadge = document.getElementById("platformBadge");
+      platformBadge.textContent = `분기 결과: ${result.detected_os}`;
+
+      const confidenceBadge = document.getElementById("confidenceBadge");
+      confidenceBadge.className = `confidence ${result.confidence}`;
+      confidenceBadge.textContent = `신뢰도: ${result.confidence}`;
+    }
+
+    async function copyResult() {
+      const text = document.getElementById("jsonOutput").textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("감지 결과를 클립보드에 복사했습니다.");
+      } catch (e) {
+        alert("복사에 실패했습니다. 브라우저 권한을 확인하세요.");
+      }
+    }
+
+    document.getElementById("redetectBtn").addEventListener("click", render);
+    document.getElementById("copyBtn").addEventListener("click", copyResult);
+
+    render();
+  </script>
+</body>
+</html>
